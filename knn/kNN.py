@@ -1,6 +1,7 @@
 from numpy import *
 import operator
 from plt_wave import *
+from os import listdir		#用于查询某个目录下的文件
 
 '''创建K临近算法的原始数据'''
 def creatDataSet():
@@ -120,6 +121,47 @@ def datingClassTest(filename):
 
 
 
+'''
+	数字分类器，图片转向量
+'''
+def img2vector( filename ):
+	returnvect = zeros((1,1024))
+	fp = open(filename)
+	for i in range(32):
+		linestr = fp.readline()
+		for j in range(32):
+			returnvect[0,32*i+j] = int(linestr[j])
+	return returnvect
+
+'''
+	图片分类器测试
+'''
+def handwritingClassTest():
+	hwLabels = []
+	filelist = listdir('trainingDigits')
+	m = len(filelist)
+	traniningMat = zeros((m,1024))
+	for i in range(m):						#创建样本数据矩阵
+		filename = filelist[i]
+		filestr = filename.split('.')[0]			#切片字符串
+		classnumstr = int(filestr.split('_')[0])	#获取分类
+		hwLabels.append(classnumstr)				#保存分类到列表
+		traniningMat[i,:] = img2vector('trainingDigits/%s' % filename)
+
+	#使用目标样本对其测试
+	testfilelist = listdir('testDigits')
+	m = len(testfilelist)
+	errorcount = 0.0
+	for i in range(m):
+		filename = testfilelist[i]
+		filestr = filename.split(',')[0]
+		classnumstr = int(filestr.split('_')[0])
+		vectorMat = img2vector('testDigits/%s' % filename)
+		mbclass = classify0(vectorMat, traniningMat, hwLabels, 3)
+		if mbclass != classnumstr:
+			print('匹配失败，%s样本分类器测出结果是%s,但实际结果是%s' % (filename,str(mbclass),classnumstr))
+			errorcount+=1.0
+	print('错误率=%f' % (errorcount/m*100))
 
 '''-----------------------------------------------------------------------------------------------------'''
 
@@ -135,10 +177,15 @@ print('属于'+str(classify0( autoNormData([40920,8.326976,0.953952], ranges, mi
 
 print('正确率%f' % datingClassTest('datingTestSet2.txt'))
 
+'''实施例3 图像分类'''
+handwritingClassTest()
+
 '''
 	显示图像
 '''
 #DisplayWave(array, classvector)
+
+
 
 
 
